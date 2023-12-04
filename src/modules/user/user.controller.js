@@ -1,23 +1,27 @@
+import { AppError } from '../../common/errors/appError.js';
 import { User } from './user.model.js';
 import { validatePartialUser, validateUser } from './user.schema.js';
 import { UserService } from './user.service.js';
 
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
   try {
     const { hasError, errorMessages, userData } = validateUser(req.body);
 
-    if (hasError) {
-      return res.status(400).json({
-        status: 'error',
-        message: errorMessages,
-      });
-    }
+    // if (hasError) {
+    //   return res.status(400).json({
+    //     status: 'error',
+    //     message: errorMessages,
+    //   });
+    // }
 
     const user = await UserService.create(userData);
 
     return res.status(201).json(user);
   } catch (error) {
     console.log(error);
+    if (error.parent.code === '23505') {
+      return next(new AppError('Duplicated email', 404))
+    }
     return res.status(500).json({
       status: 'fail',
       message: 'Something went very wromg',
@@ -64,6 +68,7 @@ export const findOneUser = async (req, res) => {
       status: 'fail',
       message: 'Something went very wromg',
       error,
+      
     });
   }
 };
