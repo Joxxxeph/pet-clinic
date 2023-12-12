@@ -12,6 +12,9 @@ export class UserService {
 
   static async findAll() {
     return await User.findOne({
+      attributes: {
+        exclude: ['password', 'passwordChangedAt', 'status', 'createdAt', 'updatedAt']
+      },
       where: {
         status: true,
       },
@@ -28,5 +31,14 @@ export class UserService {
 
   static async deleteUser(user) {
     return await user.update({ status: false });
+  }
+
+  static async findOneByEmail(email){
+    return await User.findOne({
+      where: {
+        status: true,
+        email: email
+      }
+    })
   }
 }

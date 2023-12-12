@@ -1,8 +1,12 @@
+import jwt from 'jsonwebtoken'; 
 import { AppError } from '../../common/errors/appError.js';
+import { catchAsync } from '../../common/errors/catchAsync.js';
 import { UserService } from './user.service.js';
+import { envs } from '../../config/enviroments/enviroments.js';
+import { promisify } from 'util'
 
-export const validateExistUser = async (req, res, next) => {
-  try {
+export const validateExistUser = catchAsync( async (req, res, next) => {
+
     const { id } = req.params;
 
     const user = await UserService.findOne(id);
@@ -13,12 +17,39 @@ export const validateExistUser = async (req, res, next) => {
 
     req.user = user
     next() 
-  } catch (error) {
-      console.log(error);
-      return res.status(500).json({
-        status: 'fail',
-        message: 'Something went very wromg',
-        error,
-      });
+
+});
+
+
+export const protect = catchAsync(async (req, res, next) => {
+  //1. obtener el token
+  let token
+  if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
+    token = req.headers.authorization.split(' ')[1]
   }
-};
+  
+  //2. validar el token
+  if(!token){
+    return next(new AppError('You are not logged in!. Please login to get access', 401))
+  }
+
+  //3. decodificar el token
+  const decoded = await promisify(jwt.verify)(token, envs.SECRET_JWT_SEED)
+
+
+  //4. buscar el usuario dueño del token y validar si existe
+  const user = await UserService.findOne(decoded.id)
+
+  if(!user) {
+    return next(new AppError('The owner of this token in nor longer available', 401))
+  }
+
+
+  //5. pendiente...
+
+
+  //6. adjuntar el usuario en sesion, el usuario en sesion es el usuario dueño del toquen
+  req.sessionUser = user;
+  next()
+
+});

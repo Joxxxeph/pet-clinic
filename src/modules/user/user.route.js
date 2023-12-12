@@ -1,6 +1,6 @@
 import express from 'express'
 import { deleteUser, findAllUser, findOneUser, login, register, updateUser } from './user.controller.js'
-import { validateExistUser } from './user.middelware.js'
+import { protect, validateExistUser } from './user.middelware.js'
 
 export const router = express.Router()
 
@@ -11,6 +11,6 @@ router.post('/login', login)
 router.get('/', findAllUser)
 
 router.route('/:id')
-    .get(validateExistUser, findOneUser)
+    .get(protect, validateExistUser, findOneUser)
     .patch(validateExistUser, updateUser)
     .delete(validateExistUser, deleteUser)
