@@ -1,12 +1,14 @@
 import { catchAsync } from "../../common/errors/catchAsync.js"
 import { generateUUID } from "../../config/plugins/generate-uuid.plugin.js"
 import { httpClient } from "../../config/plugins/http-client.plugin.js"
-import { validatePet } from "./pet.schema.js"
+import { validatePartialSchema, validatePet } from "./pet.schema.js"
 import { PetService } from "./pet.service.js"
 
 
 export const findAllPets = catchAsync( async(req, res, next) => {
+  const pets = await PetService.findAll()
 
+  return res.status(200).json(pets)
 })
 
 export const createPet = catchAsync( async(req, res, next) => {
@@ -29,4 +31,36 @@ export const createPet = catchAsync( async(req, res, next) => {
   petData.genetic_diseases = diseases
   const pet = await PetService.create(petData)
   return res.json(pet)
+})
+
+export const findOnePet = catchAsync( async (req, res, next) => {
+  const { pet } = req;
+
+  return res.status(200).json(pet)
+})
+
+export const updatePet = catchAsync( async (req, res, next) => {
+  const {pet} = req
+  const { hasError, errorMessages, petData } = validatePartialSchema(req.body)
+
+  if (hasError) {
+    return res.status(422).json({
+      status: 'error',
+      message: errorMessages
+    })
+  }
+
+  await PetService.update(pet, petData)
+
+  return res.status(200).json({
+    message: 'The pet has been updated successfully'
+  })
+})
+
+export const deletePet = catchAsync( async (req, res, next) => {
+  const { pet } = req
+
+  await PetService.delete(pet)
+
+  return res.status(204).json(null)
 })

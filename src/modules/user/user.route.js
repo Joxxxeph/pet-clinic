@@ -1,16 +1,29 @@
-import express from 'express'
-import { deleteUser, findAllUser, findOneUser, login, register, updateUser } from './user.controller.js'
-import { protect, validateExistUser } from './user.middelware.js'
+import express from 'express';
+import {
+  deleteUser,
+  findAllUser,
+  findOneUser,
+  login,
+  register,
+  updateUser,
+  changePassword,
+} from './user.controller.js';
+import { protect, protectAccountOwner, restrictTo, validateExistUser } from './user.middelware.js';
 
-export const router = express.Router()
+export const router = express.Router();
 
-router.post('/register', register)
+router.post('/register', register);
 
-router.post('/login', login)
+router.post('/login', login);
 
-router.get('/', findAllUser)
+router.use(protect)
 
-router.route('/:id')
-    .get(protect, validateExistUser, findOneUser)
-    .patch(validateExistUser, updateUser)
-    .delete(validateExistUser, deleteUser)
+router.patch('/change-password', changePassword);
+
+router.get('/', findAllUser);
+
+router
+  .route('/:id')
+  .get(restrictTo('developer', 'receptionist'), validateExistUser, findOneUser)
+  .patch(validateExistUser, protectAccountOwner, updateUser)
+  .delete(validateExistUser, protectAccountOwner, deleteUser);

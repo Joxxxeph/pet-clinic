@@ -1,6 +1,6 @@
 import { AppError } from '../../common/errors/appError.js';
 import { catchAsync } from '../../common/errors/catchAsync.js';
-import { verifyPassword } from '../../config/plugins/encripted-password.plugin.js';
+import { encryptedPassword, verifyPassword } from '../../config/plugins/encripted-password.plugin.js';
 import { generateJWT } from '../../config/plugins/generate-jwt.plugin.js';
 import { User } from './user.model.js';
 import { validateLogin, validatePartialUser, validateUser } from './user.schema.js';
@@ -38,9 +38,10 @@ export const login = catchAsync( async (req, res, next) => {
   const { hasError, errorMessages, userData } = validateLogin(req.body)
 
   if (hasError) {
-    return res.status(400).json({
+    return res.status(422).json({
       status: 'error',
-      message: errorMessages,
+      message: 'error de validacion', 
+      errorMessages,
     });
   }
 
@@ -119,6 +120,41 @@ export const updateUser = catchAsync( async (req, res) => {
     return res.status(200).json(userUpdated)
 
 });
+
+export const changePassword = catchAsync( async (req, res, next) => {
+  //1. obtener el usuario en sesion
+  const { sessionUser } = req
+
+  //2. traer los datos de la req.body
+  const { currentPassword, newPassword } = req.body
+
+  //3.validar si la contraseña actual y la nueva son iguales, enviar un error
+  if (currentPassword === newPassword) {
+    return next(new AppError('The password cannot be equal', 400))
+  }
+
+  //4. validar si la contraseña actual es igual a la contraseña en la base de datos
+  const isCorrectPasword = await verifyPassword(newPassword, sessionUser.password)
+
+  if(!isCorrectPasword) {
+    return next(new AppError('Incorrect email or password', 401))
+  }
+
+  //5. encriptar la nueva contraseña
+  const hashedNewPassword = await encryptedPassword(newPassword)
+
+  //6. actualizar la contraseña
+  await UserService.update(sessionUser, {
+    password: hashedNewPassword,
+    passwordChangedAt: new Date()
+  })
+
+  return res.status(200).json({
+    message: 'User password was update successfully'
+  })
+
+
+})
 
 export const deleteUser = catchAsync( async (req, res) => {
 

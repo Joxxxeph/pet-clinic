@@ -19,3 +19,14 @@ export function validatePet(data){
     petData
   }
 }
+
+export function validatePartialSchema(data){
+  const result = petSchema.partial().safeParse(data)
+  const {hasError, errorMessages, data:petData} = extractValidationData(result)
+
+  return {
+    hasError,
+    errorMessages,
+    petData
+  }
+}

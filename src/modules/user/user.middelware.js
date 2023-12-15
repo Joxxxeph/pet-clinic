@@ -45,7 +45,16 @@ export const protect = catchAsync(async (req, res, next) => {
   }
 
 
-  //5. pendiente...
+  //5. validar si el usuario cambio la contraseña recientemente, si es asi enviar un error
+  if(user.passwordChangedAt) {
+    const changedTimeStamp = parseInt(
+      user.passwordChangedAt.getTime() / 1000,
+      10
+    )
+    if(decoded.iat < changedTimeStamp){
+      return next(new AppError('User recently changed password!, please login again', 401))
+    }
+  }
 
 
   //6. adjuntar el usuario en sesion, el usuario en sesion es el usuario dueño del toquen
@@ -53,3 +62,25 @@ export const protect = catchAsync(async (req, res, next) => {
   next()
 
 });
+
+
+export const protectAccountOwner = (req, res, next) => {
+  const { user, sessionUser } = req
+
+  if(user.id !== sessionUser.id){
+    return next(new AppError('You do not own this account', 401))
+  }
+
+  next()
+}
+
+export const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.sessionUser.role)) {
+      return next(
+        new AppError('You do not have permission to perfom this action.!', 403)
+      );
+    }
+    next();
+  };
+};

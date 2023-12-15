@@ -1,10 +1,10 @@
 import bcrypt from 'bcryptjs'
 
-export const encryptedPassword = async ( password ) => {
-    const salt = await bcrypt.genSaltSync(12)
-    return await bcrypt.hashSync(password, salt)
+export const encryptedPassword = ( password ) => {
+    const salt =  bcrypt.genSaltSync(12)
+    return bcrypt.hashSync(password, salt)
 }
 
-export const verifyPassword= async (bodyPassword, userPassword) => {
-    return await bcrypt.compareSync(bodyPassword, userPassword)
+export const verifyPassword= (bodyPassword, userPassword) => {
+    return bcrypt.compareSync(bodyPassword, userPassword)
 }
