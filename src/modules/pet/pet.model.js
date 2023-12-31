@@ -50,3 +50,4 @@ export const Pet = sequelize.define('pets', {
     },
 });
 
+ 

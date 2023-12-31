@@ -32,3 +32,4 @@ import { sequelize } from '../../config/database/database.js';
   
 });
 
+ 

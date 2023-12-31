@@ -26,7 +26,7 @@ export const Appoiment = sequelize.define('appoiments', {
   status: {
     type: DataTypes.ENUM('pending', 'cancelled', 'complete'),
     allowNull: false,
-    defaultValue: 'pendeng',
+    defaultValue: 'pending',
   },
   petId: {
     type: DataTypes.INTEGER,
@@ -38,7 +38,7 @@ export const Appoiment = sequelize.define('appoiments', {
     allowNull: false,
     field: 'medic_id',
   },
-},{
+},{ 
   indexes: [
     {
       unique: true,
